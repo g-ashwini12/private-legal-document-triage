@@ -10,16 +10,20 @@ import {
   EvalSuiteResult,
 } from '@/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function fetchHealth(): Promise<HealthStatus> {
-  const res = await fetch(`${API_BASE}/api/health`);
+  const res = await fetch(`${API_BASE}/api/health`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' },
+  });
   if (!res.ok) throw new Error('Analysis service unreachable');
   return res.json();
 }
 
 export async function fetchDocuments(): Promise<DocumentListItem[]> {
-  const res = await fetch(`${API_BASE}/api/documents`);
+  const res = await fetch(`${API_BASE}/api/documents`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' },
+  });
   if (!res.ok) throw new Error('Failed to fetch documents');
   return res.json();
 }
@@ -30,6 +34,9 @@ export async function uploadDocument(file: File, language: string = 'en') {
 
   const res = await fetch(`${API_BASE}/api/documents?language=${encodeURIComponent(language)}`, {
     method: 'POST',
+    headers: {
+      'ngrok-skip-browser-warning': 'true',
+    },
     body: formData,
   });
 
@@ -50,7 +57,9 @@ export async function fetchDocument(documentId: string): Promise<{
   chunks: Chunk[];
   analysis_cards?: DocumentAnalysisCards;
 }> {
-  const res = await fetch(`${API_BASE}/api/documents/${documentId}`);
+  const res = await fetch(`${API_BASE}/api/documents/${documentId}`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' },
+  });
   if (!res.ok) throw new Error('Document not found');
   return res.json();
 }
@@ -60,7 +69,10 @@ export async function fetchDocumentCards(
   language: string = 'en'
 ): Promise<DocumentAnalysisCards> {
   const res = await fetch(
-    `${API_BASE}/api/documents/${documentId}/cards?language=${encodeURIComponent(language)}`
+    `${API_BASE}/api/documents/${documentId}/cards?language=${encodeURIComponent(language)}`,
+    {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    }
   );
   if (!res.ok) throw new Error('Failed to load analysis cards');
   return res.json();
@@ -69,6 +81,7 @@ export async function fetchDocumentCards(
 export async function deleteDocument(documentId: string) {
   const res = await fetch(`${API_BASE}/api/documents/${documentId}`, {
     method: 'DELETE',
+    headers: { 'ngrok-skip-browser-warning': 'true' },
   });
   if (!res.ok) throw new Error('Failed to delete document');
   return res.json();
@@ -92,6 +105,7 @@ export async function askQuestionStream(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
       },
       body: JSON.stringify({
         document_id: documentId,
@@ -170,7 +184,10 @@ export async function askQuestionStream(
 export async function adminLogin(password: string): Promise<{ status: string; token: string }> {
   const res = await fetch(`${API_BASE}/api/admin/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+    },
     body: JSON.stringify({ password }),
   });
   if (!res.ok) {
@@ -182,7 +199,10 @@ export async function adminLogin(password: string): Promise<{ status: string; to
 
 export async function fetchAdminMetrics(token: string): Promise<MetricSummary> {
   const res = await fetch(`${API_BASE}/api/admin/metrics`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
   });
   if (!res.ok) {
     if (res.status === 404) throw new Error('404');
@@ -193,7 +213,10 @@ export async function fetchAdminMetrics(token: string): Promise<MetricSummary> {
 
 export async function fetchAdminEvals(token: string): Promise<EvalSuiteResult | null> {
   const res = await fetch(`${API_BASE}/api/admin/evals`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
   });
   if (!res.ok) {
     if (res.status === 404) throw new Error('404');
