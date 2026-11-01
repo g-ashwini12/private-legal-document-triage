@@ -10,6 +10,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Response, Re
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
+import httpx
 
 from config import settings
 from database import (
@@ -91,6 +92,61 @@ def get_documents_list():
         )
         for d in docs
     ]
+
+class TTSRequest(BaseModel):
+    text: str
+    language: str = "en"
+    speaker: Optional[str] = "meera"
+
+@app.post("/api/tts")
+async def text_to_speech(req: TTSRequest, request: Request):
+    """
+    Generate expressive, natural Indian Text-to-Speech using Sarvam.ai Bulbul API.
+    Falls back gracefully to browser synthesis if key is not configured.
+    """
+    sarvam_key = request.headers.get("x-sarvam-key") or os.environ.get("SARVAM_API_KEY", "")
+    if not sarvam_key:
+        return {"status": "fallback", "message": "No Sarvam API key provided; falling back to browser synthesis."}
+
+    lang_code_map = {
+        "en": "en-IN",
+        "hi": "hi-IN",
+        "ta": "ta-IN",
+        "te": "te-IN",
+        "kn": "kn-IN",
+        "ml": "ml-IN"
+    }
+    target_lang = lang_code_map.get(req.language, "en-IN")
+
+    try:
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            resp = await client.post(
+                "https://api.sarvam.ai/text-to-speech",
+                headers={
+                    "api-subscription-key": sarvam_key.strip(),
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "inputs": [req.text[:500]],
+                    "target_language_code": target_lang,
+                    "speaker": req.speaker or "meera",
+                    "pitch": 0,
+                    "pace": 1.0,
+                    "loudness": 1.5,
+                    "speech_sample_rate": 22050,
+                    "enable_preprocessing": True,
+                    "model": "bulbul:v1"
+                }
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                audios = data.get("audios", [])
+                if audios:
+                    return {"status": "ok", "audio_base64": audios[0], "format": "audio/wav"}
+    except Exception as e:
+        pass
+
+    return {"status": "fallback", "message": "Sarvam API request failed; falling back to browser synthesis."}
 
 @app.post("/api/documents")
 async def upload_document(file: UploadFile = File(...), language: str = "en"):

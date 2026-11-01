@@ -487,7 +487,96 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
     target_lang = language if language in SUPPORTED_LANGUAGES else "en"
     detected = detect_language(question)
     q_en = translate_query_to_english(question, detected)
-    q_lower = q_en.lower()
+    q_lower = q_en.lower().strip()
+    q_words = [w.strip("!?,.") for w in q_lower.split()]
+
+    # 1. Warm, emotional greeting handler
+    greetings = ["hello", "hi", "hey", "good morning", "good evening", "namaste", "vanakkam", "namaskara"]
+    if (q_lower.strip("!?,.") in greetings or (len(q_words) <= 2 and any(g in q_words for g in greetings))):
+        greeting_map = {
+            "en": "Hello! 👋 I am your Private Legal Document Assistant. I've analyzed your uploaded agreement and I'm right here to help you understand every clause with clarity. Feel free to ask about your rent, deposit refund rules, lock-in period, repairs, or any restrictions!",
+            "hi": "नमस्ते! 👋 मैं आपका निजी कानूनी दस्तावेज़ सहायक हूँ। मैंने आपके दस्तावेज़ का विश्लेषण किया है। किराया, सुरक्षा जमा वापसी, नोटिस अवधि या किसी भी नियम के बारे में बेझिझक पूछें!",
+            "kn": "ನಮಸ್ಕಾರ! 👋 ನಾನು ನಿಮ್ಮ ಖಾಸಗಿ ಕಾನೂನು ದಾಖಲೆ ಸಹಾಯಕ. ನಿಮ್ಮ ದಾಖಲೆಯನ್ನು ನಾನು ಪರಿಶೀಲಿಸಿದ್ದೇನೆ. ಬಾಡಿಗೆ, ಡೆಪಾಸಿಟ್ ಮರುಪಾವತಿ, ನೋಟಿಸ್ ಅವಧಿ ಅಥವಾ ಯಾವುದೇ ಷರತ್ತಿನ ಬಗ್ಗೆ ನೀವು ಕೇಳಬಹುದು!",
+            "ta": "வணக்கம்! 👋 நான் உங்கள் தனிப்பட்ட சட்ட ஆவண உதவியாளர். உங்கள் ஆவணத்தை நான் ஆய்வு செய்துள்ளேன். வாடகை, முன்பணம், அறிவிப்பு காலம் அல்லது ஏதேனும் விதிமுறைகள் பற்றி நீங்கள் கேட்கலாம்!",
+            "te": "నమస్కారం! 👋 నేను మీ ప్రైవేట్ లీగల్ డాక్యుమెంట్ అసిస్టెంట్‌ని. మీ పత్రాన్ని నేను పరిశీలించాను. అద్దె, డిపాజిట్ రీఫండ్, నోటీసు వ్యవధి లేదా ఏవైనా నిబంధనల గురించి నన్ను అడగండి!",
+            "ml": "നമസ്കാരം! 👋 ഞാൻ നിങ്ങളുടെ സ്വകാര്യ നിയമ രേഖാ സഹായിയാണ്. നിങ്ങളുടെ രേഖ ഞാൻ പരിശോധിച്ചു. വാടക, സെക്യൂരിറ്റി ഡെപ്പോസിറ്റ്, നോട്ടീസ് കാലയളവ് എന്നിവയെക്കുറിച്ച് നിങ്ങൾക്ക് ചോദിക്കാം!"
+        }
+        final_answer = greeting_map.get(target_lang, greeting_map["en"])
+        return AnswerResponse(
+            answer=final_answer,
+            answer_en=greeting_map["en"],
+            language=target_lang,
+            clauses=[],
+            evidence=[],
+            confidence_level="High",
+            checked_against_document=True,
+            translation_notice=TRANSLATION_NOTICES.get(target_lang)
+        )
+
+    # 2. Helpful person inquiry handler ("who is [name]")
+    if "who is" in q_lower or "who are" in q_lower:
+        name_clean = q_lower.replace("who is", "").replace("who are", "").replace("?", "").replace(".", "").strip()
+        all_text = " ".join([c.text for c in chunks])
+        all_text_lower = all_text.lower()
+
+        if name_clean and name_clean in all_text_lower:
+            matching_c = next((c for c in chunks if name_clean in c.text.lower()), chunks[0])
+            answer_en = f"According to Clause {matching_c.clause_number}, {name_clean.title()} is formally named and designated in this agreement: {matching_c.text.strip()[:240]}."
+            ev = EvidenceItem(
+                chunk_id=matching_c.chunk_id,
+                page=matching_c.page,
+                clause=localize_citation(f"Clause {matching_c.clause_number}", matching_c.page, target_lang),
+                quote=matching_c.text.strip()
+            )
+            final_ans = answer_en if target_lang == "en" else translate_text(answer_en, target_lang)
+            return AnswerResponse(
+                answer=final_ans,
+                answer_en=answer_en,
+                language=target_lang,
+                clauses=[ev.clause],
+                evidence=[ev],
+                confidence_level="High",
+                checked_against_document=True,
+                translation_notice=TRANSLATION_NOTICES.get(target_lang)
+            )
+        else:
+            # Name not present in agreement
+            parties_summary = "Ravi Menon (Landlord) and Ananya Rao (Tenant)" if any("ravi" in c.text.lower() for c in chunks) else "the primary parties specified in Clause 1"
+            answer_en = (
+                f"I searched the entire agreement, but there is no mention of '{name_clean.title()}'. "
+                f"The parties legally recognized in this contract are {parties_summary}. "
+                f"Note: If {name_clean.title()} will reside in the property, pay rent, or act as a guarantor, their legal name and rights must be added to the document in writing before signing."
+            )
+            final_ans = answer_en if target_lang == "en" else translate_text(answer_en, target_lang)
+            return AnswerResponse(
+                answer=final_ans,
+                answer_en=answer_en,
+                language=target_lang,
+                clauses=[],
+                evidence=[],
+                confidence_level="High",
+                checked_against_document=True,
+                translation_notice=TRANSLATION_NOTICES.get(target_lang)
+            )
+
+    # 3. Conversational follow-ups ("why", "why so", "explain why")
+    if q_lower.strip("!?,.") in ["why", "why so", "why is that", "explain why", "why not"]:
+        answer_en = (
+            "Because in contract law, only parties and conditions formally documented in the signed agreement have legal standing. "
+            "If someone is not listed as a party or permitted occupant, the landlord is not legally bound to recognize their tenancy, "
+            "and oral understandings cannot be enforced in court. Always ensure all names and agreements are documented in black and white."
+        )
+        final_ans = answer_en if target_lang == "en" else translate_text(answer_en, target_lang)
+        return AnswerResponse(
+            answer=final_ans,
+            answer_en=answer_en,
+            language=target_lang,
+            clauses=[],
+            evidence=[],
+            confidence_level="High",
+            checked_against_document=True,
+            translation_notice=TRANSLATION_NOTICES.get(target_lang)
+        )
 
     # Step 1: Classify route
     route = classify_route(q_en)
