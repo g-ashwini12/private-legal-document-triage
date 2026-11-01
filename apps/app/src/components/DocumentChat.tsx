@@ -12,6 +12,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Languages,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { AnswerResponse, NodeProgress } from '@/types';
 import { askQuestionStream } from '@/lib/api';
@@ -55,11 +57,85 @@ export default function DocumentChat({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  // Voice recording state
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll the inner message container if there are messages, NEVER scroll the entire window
+    if (messages.length > 0 && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages, progressMsg]);
+
+  // Language locale mapping for speech recognition
+  const getSpeechLocale = (lang: string) => {
+    switch (lang) {
+      case 'hi': return 'hi-IN';
+      case 'ta': return 'ta-IN';
+      case 'te': return 'te-IN';
+      case 'kn': return 'kn-IN';
+      case 'ml': return 'ml-IN';
+      default: return 'en-IN';
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert(t('micNotSupported', currentLanguage));
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRec();
+      recognition.lang = getSpeechLocale(currentLanguage);
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          setInputQuestion(transcript);
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        console.warn('Speech recognition error:', e);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error(err);
+      setIsListening(false);
+    }
+  };
 
   // Handle questions passed from cards (e.g. from watch out for card)
   useEffect(() => {
@@ -175,7 +251,7 @@ export default function DocumentChat({
       )}
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !loading && (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400 dark:text-slate-500">
             <Sparkles className="w-8 h-8 text-emerald-500/60 mb-2" />
@@ -308,7 +384,6 @@ export default function DocumentChat({
           </div>
         )}
 
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Box */}
@@ -317,8 +392,23 @@ export default function DocumentChat({
           e.preventDefault();
           handleAsk(inputQuestion);
         }}
-        className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-2xl"
+        className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-2xl relative"
       >
+        {isListening && (
+          <div className="absolute -top-7 left-4 right-4 flex items-center justify-between px-3 py-1 bg-emerald-500 text-slate-950 font-bold text-[11px] rounded-t-lg shadow-sm animate-pulse">
+            <span className="flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-ping inline-block" />
+              <span>{t('listening', currentLanguage)}</span>
+            </span>
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              className="text-[10px] underline hover:opacity-80"
+            >
+              {t('stopListeningVoice', currentLanguage)}
+            </button>
+          </div>
+        )}
         <div className="flex items-center space-x-2">
           <input
             id="document-chat-input"
@@ -326,13 +416,26 @@ export default function DocumentChat({
             value={inputQuestion}
             onChange={(e) => setInputQuestion(e.target.value)}
             disabled={loading}
-            placeholder={t('chatPlaceholder', currentLanguage)}
+            placeholder={isListening ? t('listening', currentLanguage) : t('chatPlaceholder', currentLanguage)}
             className="flex-1 px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60"
           />
           <button
+            type="button"
+            onClick={toggleVoiceInput}
+            aria-label="Voice Input"
+            title={isListening ? t('stopListeningVoice', currentLanguage) : t('voiceQuestion', currentLanguage)}
+            className={`p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+              isListening
+                ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
+                : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </button>
+          <button
             type="submit"
             disabled={loading || !inputQuestion.trim()}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold text-xs sm:text-sm flex items-center space-x-1.5 transition-colors shadow-xs"
+            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold text-xs sm:text-sm flex items-center space-x-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <span>{t('send', currentLanguage)}</span>
             <Send className="w-3.5 h-3.5" />

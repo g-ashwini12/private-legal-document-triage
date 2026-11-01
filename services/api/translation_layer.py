@@ -247,16 +247,18 @@ def detect_language(text: str) -> str:
             return "ml"
     return "en"
 
-def call_ollama_generate(prompt: str, system: Optional[str] = None, timeout: float = 12.0) -> Optional[str]:
-    """Call Ollama model directly with timeout and error handling."""
+def call_ollama_generate(prompt: str, system: Optional[str] = None, timeout: float = 25.0) -> Optional[str]:
+    """Call Ollama model directly with timeout, increased token limits, and error handling."""
     try:
         payload = {
             "model": settings.OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.1,
+                "temperature": 0.2,
                 "top_p": 0.9,
+                "num_predict": 1024,  # Increased output token size for rich, comprehensive answers
+                "num_ctx": 4096,      # Expanded context window
             }
         }
         if system:

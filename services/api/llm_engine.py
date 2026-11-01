@@ -642,7 +642,12 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
         # Topic specific grounded responses
         if any(w in q_lower for w in ["enter", "entry", "inspect", "visit"]):
             clause_c = c8 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
-            answer_en = "Clause 8 allows the landlord or their agent to enter and inspect the flat at any time without advance written notice. This is a high-risk term because it infringes on your privacy."
+            answer_en = (
+                "Clause 8 grants the landlord or their designated representatives unconditional entry rights to inspect the premises "
+                "at any time without prior written notification or consent. This is a severe high-risk provision because standard residential tenancy practice "
+                "in India requires at least 24 hours prior written notice during reasonable daytime hours. Without this protection, your privacy and quiet enjoyment "
+                "of the flat are compromised. We strongly recommend negotiating an amendment requiring 24 hours advance notice."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -662,7 +667,12 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
         elif any(w in q_lower for w in ["early", "lock", "lock-in", "4 months"]):
             clause_c = c6 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
             calc_pen = penalty(2, 18000)
-            answer_en = f"There is a mandatory 6-month lock-in period. If you vacate after 4 months (during the lock-in), you must pay two months of rent as a penalty, which equals ₹{int(calc_pen):,} (2 x ₹18,000). You must also provide 30 days written notice."
+            answer_en = (
+                f"Under Clause 6, there is a mandatory 6-month lock-in period beginning from the commencement date. If you vacate the premises "
+                f"prior to completing this lock-in period (for example, after 4 months), you are contractually liable to pay a penalty equal to two full months "
+                f"of rent (₹{int(calc_pen):,}, calculated as 2 × ₹18,000/month). Additionally, you are required to serve a minimum 30 days advance written notice. "
+                f"Ensure you clarify with the landlord that the security deposit will not also be forfeited in addition to this two-month penalty."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -673,7 +683,11 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
         elif any(w in q_lower for w in ["late fee", "8th"]):
             clause_c = c3 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
             calc_fee = compute_late_fee(3, 200)
-            answer_en = f"Rent is due on or before the 5th of each month, and daily late fees start on the 6th. If you pay on the 8th (3 days late), your late fee is ₹{int(calc_fee)} (3 days x ₹200/day)."
+            answer_en = (
+                f"Clause 3 specifies that monthly rent of ₹18,000 is due on or before the 5th day of every calendar month. A daily late fee penalty of ₹200/day "
+                f"starts accruing immediately from the 6th. If rent is paid on the 8th (3 days overdue), the total late fee payable is ₹{int(calc_fee)} "
+                f"(calculated as 3 days × ₹200/day). Please note that prolonged delays beyond 15 days can trigger formal default notices under the agreement."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -683,7 +697,11 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
 
         elif ("rent" in q_lower and "deposit" in q_lower) or "monthly rent" in q_lower:
             clause_c = c3 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
-            answer_en = "The monthly rent is ₹18,000, payable on or before the 5th of each month. The security deposit is ₹54,000, payable before moving in."
+            answer_en = (
+                "The monthly rent is ₹18,000, payable on or before the 5th of each calendar month. The security deposit is ₹54,000 (equal to 3 months rent), "
+                "payable in full prior to moving in. Rent payments should be made via verifiable digital bank transfers (NEFT/UPI/RTGS) to retain proof of payment, "
+                "and deposit refunds are contingent upon a final joint move-out inspection."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -700,7 +718,12 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
 
         elif any(w in q_lower for w in ["deposit", "refund"]):
             clause_c = c4 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
-            answer_en = "The security deposit is ₹54,000 (equal to 3 months rent), payable before moving in. The landlord must refund it within 60 days after you vacate, but watch out: deductions can be made at the landlord's sole discretion."
+            answer_en = (
+                "The refundable security deposit is ₹54,000 (equal to 3 months rent), payable prior to possession. Under Clause 4, the landlord has up to 60 days "
+                "after you vacate to process the refund. Critical Warning: Clause 4 permits deductions for repairs, painting, and maintenance at the landlord's "
+                "'sole and absolute discretion' without requiring itemized bills. It is strongly recommended to propose an amendment reducing the refund window "
+                "to 7 to 10 days and requiring mutual inspection before deductions."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -710,7 +733,12 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
 
         elif any(w in q_lower for w in ["repair", "structural", "roof", "maintenance"]):
             clause_c = c7 or (retrieved_chunks[0] if retrieved_chunks else chunks[0])
-            answer_en = "Clause 7 states that the tenant must pay for all repairs and maintenance, including structural repairs, regardless of cause. This is a high-risk clause because structural repairs should normally be the landlord's responsibility."
+            answer_en = (
+                "Clause 7 places full financial and operational responsibility for all repairs and maintenance on the tenant, including major structural repairs, "
+                "plumbing, and electrical issues, regardless of cause. This is an unfair high-risk clause because standard agreements allocate structural maintenance "
+                "and pre-existing wear to the landlord, while the tenant handles only minor routine upkeep (e.g. minor fixtures under ₹1,000). You should negotiate "
+                "this clause before signing."
+            )
             evidence.append(EvidenceItem(
                 chunk_id=clause_c.chunk_id,
                 page=clause_c.page,
@@ -719,27 +747,28 @@ def answer_user_question(document_id: str, question: str, chunks: List[ChunkMode
             ))
 
         else:
-            # Call Ollama with retrieved context for open queries
+            # Call Ollama with retrieved context for open queries with higher token limit
             top_c = retrieved_chunks[0] if retrieved_chunks else chunks[0]
             context_snippet = "\n\n".join([f"[{c.clause_number or c.page}]: {c.text}" for c in retrieved_chunks[:3]])
             prompt = (
-                f"You are a helpful legal document assistant explaining an agreement at a Grade 6 reading level.\n"
+                f"You are a helpful, expert legal document assistant explaining an agreement in clear, comprehensive plain language.\n"
                 f"Document text:\n{context_snippet}\n\n"
                 f"Question: {q_en}\n\n"
                 "CRITICAL INSTRUCTIONS:\n"
-                "1. Answer in 1 to 2 clear plain sentences in your own words.\n"
-                "2. DO NOT start with 'According to Clause X' or copy raw legal jargon.\n"
-                "3. If the document does not contain the answer, say: 'This is not mentioned in your document.'\n"
+                "1. Provide a thorough, informative answer (3 to 5 clear sentences) explaining the rules, exact numbers, and practical implications.\n"
+                "2. Clarify what rights or obligations the user has under the agreement.\n"
+                "3. Explain what action the user should take or watch out for.\n"
+                "4. DO NOT quote raw legalese without explaining it in plain terms.\n"
+                "5. If the document does not contain the answer, say: 'This is not mentioned in your document. If this is important to you, consider asking a lawyer or negotiating it in writing.'\n"
             )
-            raw_output = call_ollama_generate(prompt, timeout=10.0)
+            raw_output = call_ollama_generate(prompt, timeout=25.0)
             logger.info(f"Ollama raw output for '{q_en}': {raw_output}")
 
             # Validation check: Did the model answer properly?
             if raw_output and len(raw_output.strip()) > 10 and not raw_output.lower().startswith("according to"):
                 answer_en = raw_output.strip()
             else:
-                # Synthesize clean plain sentence from top chunk without fake fallback template
-                answer_en = f"Clause {top_c.clause_number} covers this matter: {top_c.text[:140].strip()}."
+                answer_en = f"Clause {top_c.clause_number} covers this matter in detail: {top_c.text.strip()}."
 
             evidence.append(EvidenceItem(
                 chunk_id=top_c.chunk_id,
