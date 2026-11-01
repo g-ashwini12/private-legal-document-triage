@@ -191,14 +191,22 @@ export default function TriageCards({
               </p>
             )}
 
-            {/* Details grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            {/* Details grid with staggered box animation */}
+            <AnimatedContent
+              distance={40}
+              direction="vertical"
+              duration={0.65}
+              ease="power3.out"
+              stagger={0.08}
+              threshold={0.1}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1"
+            >
               {/* Parties */}
               {cards.overview.parties && cards.overview.parties.length > 0 && (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 mb-1">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400 mb-1.5">
                     <Users className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
                       {t('parties', currentLanguage)}
                     </span>
                   </div>
@@ -214,10 +222,10 @@ export default function TriageCards({
 
               {/* Period */}
               {cards.overview.period && (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 mb-1">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400 mb-1.5">
                     <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
                       {t('period', currentLanguage)}
                     </span>
                   </div>
@@ -229,10 +237,10 @@ export default function TriageCards({
 
               {/* Main Amounts */}
               {cards.overview.main_amounts && cards.overview.main_amounts.length > 0 && (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 mb-1">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400 mb-1.5">
                     <Coins className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
                       {t('mainAmounts', currentLanguage)}
                     </span>
                   </div>
@@ -246,7 +254,7 @@ export default function TriageCards({
                   </div>
                 </div>
               )}
-            </div>
+            </AnimatedContent>
 
             {/* Citations */}
             {cards.overview.citations && cards.overview.citations.length > 0 && (
@@ -375,11 +383,19 @@ export default function TriageCards({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AnimatedContent
+              distance={50}
+              direction="vertical"
+              duration={0.65}
+              ease="power3.out"
+              stagger={0.08}
+              threshold={0.1}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            >
               {cards.key_details.map((detail, idx) => (
                 <div
                   key={idx}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 flex flex-col justify-between"
+                  className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
                 >
                   <div>
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -405,7 +421,7 @@ export default function TriageCards({
                   )}
                 </div>
               ))}
-            </div>
+            </AnimatedContent>
           </div>
         </AnimatedContent>
       )}
@@ -462,7 +478,15 @@ export default function TriageCards({
               </div>
             </div>
 
-            <div className="space-y-3">
+            <AnimatedContent
+              distance={50}
+              direction="vertical"
+              duration={0.65}
+              ease="power3.out"
+              stagger={0.08}
+              threshold={0.1}
+              className="space-y-3"
+            >
               {cards.watch_out_risks.map((risk, idx) => {
                 const isHigh = risk.level === 'High';
                 const isMedium = risk.level === 'Medium';
@@ -473,7 +497,7 @@ export default function TriageCards({
                 return (
                   <div
                     key={idx}
-                    className={`p-3.5 rounded-xl border ${
+                    className={`triage-box p-3.5 rounded-xl border ${
                       isHigh
                         ? 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20'
                         : isMedium
@@ -525,7 +549,7 @@ export default function TriageCards({
                   </div>
                 );
               })}
-            </div>
+            </AnimatedContent>
           </div>
         </AnimatedContent>
       )}
@@ -582,13 +606,21 @@ export default function TriageCards({
               </div>
             </div>
 
-            <div className="space-y-2.5">
+            <AnimatedContent
+              distance={50}
+              direction="vertical"
+              duration={0.65}
+              ease="power3.out"
+              stagger={0.08}
+              threshold={0.1}
+              className="space-y-2.5"
+            >
               {cards.what_you_must_do.map((item, idx) => {
                 const actionText = showEnObligations && item.action_en ? item.action_en : item.action;
                 return (
                   <div
                     key={idx}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3"
+                    className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3"
                   >
                     <div className="flex-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -608,7 +640,7 @@ export default function TriageCards({
                   </div>
                 );
               })}
-            </div>
+            </AnimatedContent>
           </div>
         </AnimatedContent>
       )}
@@ -665,13 +697,21 @@ export default function TriageCards({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <AnimatedContent
+              distance={50}
+              direction="vertical"
+              duration={0.65}
+              ease="power3.out"
+              stagger={0.08}
+              threshold={0.1}
+              className="space-y-2"
+            >
               {cards.important_dates.map((deadline, idx) => {
                 const eventText = showEnDates && deadline.event_en ? deadline.event_en : deadline.event;
                 return (
                   <div
                     key={idx}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3"
+                    className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 rounded-lg bg-amber-100/70 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">
@@ -696,7 +736,7 @@ export default function TriageCards({
                   </div>
                 );
               })}
-            </div>
+            </AnimatedContent>
           </div>
         </AnimatedContent>
       )}
@@ -771,8 +811,16 @@ export default function TriageCards({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <AnimatedContent
+                distance={50}
+                direction="vertical"
+                duration={0.65}
+                ease="power3.out"
+                stagger={0.08}
+                threshold={0.1}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1"
+              >
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     {t('lawyerWhy', currentLanguage)}
                   </span>
@@ -783,7 +831,7 @@ export default function TriageCards({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     {t('lawyerWhatToAsk', currentLanguage)}
                   </span>
@@ -794,7 +842,7 @@ export default function TriageCards({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     {t('lawyerByWhen', currentLanguage)}
                   </span>
@@ -805,7 +853,7 @@ export default function TriageCards({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="triage-box p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     {t('lawyerSpecialist', currentLanguage)}
                   </span>
@@ -815,7 +863,7 @@ export default function TriageCards({
                       : cards.lawyer_advice.recommended_specialist}
                   </p>
                 </div>
-              </div>
+              </AnimatedContent>
             </div>
           </div>
         </AnimatedContent>

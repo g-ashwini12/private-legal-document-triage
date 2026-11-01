@@ -52,7 +52,7 @@ export default function Navbar({ currentLanguage = 'en', onLanguageChange }: Nav
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md transition-colors">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand / Title only */}
         <Link href="/" className="flex items-center space-x-2.5 group">
@@ -69,12 +69,12 @@ export default function Navbar({ currentLanguage = 'en', onLanguageChange }: Nav
         {/* Right side: Language selector & Theme toggle ONLY */}
         <div className="flex items-center space-x-3">
           <div className="relative flex items-center">
-            <Globe className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-2.5 pointer-events-none" />
+            <Globe className="w-4 h-4 text-emerald-600 dark:text-emerald-400 absolute left-2.5 pointer-events-none" />
             <select
               value={selectedLang}
               onChange={(e) => handleLangChange(e.target.value as LanguageCode)}
               aria-label="Select Language"
-              className="pl-8 pr-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
+              className="pl-8 pr-4 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-xs"
             >
               {(Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[]).map((code) => (
                 <option key={code} value={code}>
@@ -87,7 +87,7 @@ export default function Navbar({ currentLanguage = 'en', onLanguageChange }: Nav
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
