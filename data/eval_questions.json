@@ -1,0 +1,134 @@
+[
+  {
+    "id": "Q1",
+    "question": "What is the monthly rent and when is it due?",
+    "expected_route": "clause_question",
+    "expected_clause": 3,
+    "expected_page": 1,
+    "expected_keywords": ["18,000", "5th"],
+    "expected_risk_level": null,
+    "escalation_expected": false,
+    "description": "Clause 3 specifies monthly rent ₹18,000 due on or before 5th of each month."
+  },
+  {
+    "id": "Q2",
+    "question": "Can the landlord enter without telling me?",
+    "expected_route": "risk_check",
+    "expected_clause": 8,
+    "expected_page": 3,
+    "expected_keywords": ["enter", "any time", "without prior notice"],
+    "expected_risk_level": "High",
+    "escalation_expected": true,
+    "description": "Clause 8 allows entry at any time without notice, which is a High risk."
+  },
+  {
+    "id": "Q3",
+    "question": "What if I leave after 4 months?",
+    "expected_route": "clause_question",
+    "expected_clause": 6,
+    "expected_page": 2,
+    "expected_keywords": ["lock-in", "two months", "36,000", "penalty"],
+    "expected_risk_level": "Medium",
+    "escalation_expected": false,
+    "description": "Clause 6 lock-in is 6 months; leaving after 4 months incurs 2 months rent penalty = ₹36,000."
+  },
+  {
+    "id": "Q4",
+    "question": "How much late fee if I pay on the 8th?",
+    "expected_route": "clause_question",
+    "expected_clause": 3,
+    "expected_page": 1,
+    "expected_keywords": ["late fee", "200", "600"],
+    "expected_risk_level": null,
+    "escalation_expected": false,
+    "description": "Late fee applies from 6th: 3 days late (6th, 7th, 8th) at ₹200/day = ₹600."
+  },
+  {
+    "id": "Q5",
+    "question": "How much is the deposit and when do I get it back?",
+    "expected_route": "clause_question",
+    "expected_clause": 4,
+    "expected_page": 2,
+    "expected_keywords": ["54,000", "60 days", "sole discretion"],
+    "expected_risk_level": "High",
+    "escalation_expected": true,
+    "description": "Clause 4 deposit is ₹54,000 refunded within 60 days, deductions at sole discretion (High risk)."
+  },
+  {
+    "id": "Q6",
+    "question": "Will I win if I take this to court?",
+    "expected_route": "risk_check",
+    "expected_clause": 9,
+    "expected_page": 3,
+    "expected_keywords": ["not legal advice", "lawyer", "arbitration"],
+    "expected_risk_level": null,
+    "escalation_expected": true,
+    "description": "Outcome prediction question must be refused, explained, and escalated to a lawyer."
+  },
+  {
+    "id": "Q7",
+    "question": "What is the capital of France?",
+    "expected_route": "out_of_scope",
+    "expected_clause": null,
+    "expected_page": null,
+    "expected_keywords": ["not related", "document"],
+    "expected_risk_level": null,
+    "escalation_expected": false,
+    "description": "Non-legal out of scope query returns polite refusal without LLM branches."
+  },
+  {
+    "id": "Q8",
+    "question": "Does the agreement mention pets?",
+    "expected_route": "clause_question",
+    "expected_clause": null,
+    "expected_page": null,
+    "expected_keywords": ["Not found in the document"],
+    "expected_risk_level": null,
+    "escalation_expected": false,
+    "description": "Unmentioned topic returns 'Not found in the document' with no hallucinated clause."
+  },
+  {
+    "id": "Q9",
+    "question": "Who has to pay for structural repairs if the roof breaks?",
+    "expected_route": "risk_check",
+    "expected_clause": 7,
+    "expected_page": 3,
+    "expected_keywords": ["Tenant", "all repairs", "structural"],
+    "expected_risk_level": "High",
+    "escalation_expected": true,
+    "description": "Clause 7 makes tenant bear all repairs including structural regardless of cause (High risk)."
+  },
+  {
+    "id": "Q10",
+    "question": "What are the rules regarding lease renewal and rent increases?",
+    "expected_route": "deadline_lookup",
+    "expected_clause": 5,
+    "expected_page": 2,
+    "expected_keywords": ["renew", "11 months", "30 days", "15%"],
+    "expected_risk_level": "Medium",
+    "escalation_expected": false,
+    "description": "Clause 5 auto-renews unless 30 days notice; rent increase up to 15%."
+  },
+  {
+    "id": "Q11",
+    "question": "Where are disputes settled and who chooses the arbitrator?",
+    "expected_route": "clause_question",
+    "expected_clause": 9,
+    "expected_page": 3,
+    "expected_keywords": ["arbitration", "Bengaluru", "sole arbitrator", "Landlord"],
+    "expected_risk_level": "Medium",
+    "escalation_expected": false,
+    "description": "Clause 9 arbitration in Bengaluru before sole arbitrator appointed by Landlord."
+  },
+  {
+    "id": "Q12",
+    "question": "What utility bills is the tenant responsible for?",
+    "expected_route": "obligation_lookup",
+    "expected_clause": 10,
+    "expected_page": 3,
+    "expected_keywords": ["electricity", "water", "internet"],
+    "expected_risk_level": "Low",
+    "escalation_expected": false,
+    "description": "Clause 10 tenant pays electricity, water, and internet directly (Low risk)."
+  }
+]
