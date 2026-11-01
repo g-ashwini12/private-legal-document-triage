@@ -74,6 +74,7 @@ const AnimatedContent = ({
       gsap.set(el, { visibility: 'visible' });
 
       if (reduce) {
+        gsap.set(targets, { opacity: 1, visibility: 'visible', clearProps: 'all' });
         callbacksRef.current.onComplete?.();
         return;
       }
@@ -177,6 +178,18 @@ const AnimatedContent = ({
               tl.reverse();
             }
       });
+
+      // If already in or near viewport on mount, play immediately so content is never hidden
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+      if (rect.top <= vh * 0.95) {
+        tl.play();
+      }
+
+      // Refresh ScrollTrigger so dynamic positions are accurate
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
     }, el);
 
     return () => ctx.revert();
@@ -207,7 +220,7 @@ const AnimatedContent = ({
   ]);
 
   return (
-    <div ref={ref} className={className} style={{ visibility: 'hidden', ...style }} {...props}>
+    <div ref={ref} className={className} style={style} {...props}>
       {children}
     </div>
   );

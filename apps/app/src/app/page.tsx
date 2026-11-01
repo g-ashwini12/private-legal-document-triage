@@ -112,6 +112,13 @@ export default function WorkspacePage() {
     }
   }, [currentLang]);
 
+  // Ensure scroll is reset to top whenever a document is opened
+  useEffect(() => {
+    if (selectedDocId && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [selectedDocId]);
+
   // Load document list on mount
   useEffect(() => {
     loadDocumentList();
@@ -135,7 +142,13 @@ export default function WorkspacePage() {
       const doc = await fetchDocument(docId);
       setMetadata(doc.metadata);
       setChunks(doc.chunks);
+      if (doc.analysis_cards) {
+        setCards(doc.analysis_cards);
+      }
       setSelectedDocId(docId);
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }
 
       // Fetch cards in the selected language
       const triageCards = await fetchDocumentCards(docId, lang);
@@ -163,6 +176,9 @@ export default function WorkspacePage() {
     try {
       const res = await uploadDocument(file, currentLang);
       const newDocId = res.document_id;
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }
       await loadDocumentList();
       await loadDocument(newDocId, currentLang);
     } catch (err: any) {
@@ -464,7 +480,7 @@ export default function WorkspacePage() {
         </div>
       ) : isUploading || isAnalyzing ? (
         /* 2. LOADING / ANALYZING STATE (With Sidebar Skeleton) */
-        <div className="pt-20 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col md:flex-row gap-8">
+        <div className="pt-24 sm:pt-28 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col md:flex-row gap-8">
           {/* Skeleton in sidebar */}
           <div className="w-56 shrink-0 hidden md:block">
             <div className="sticky top-24 p-4 space-y-5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
@@ -491,7 +507,7 @@ export default function WorkspacePage() {
         </div>
       ) : (
         /* 3. DOCUMENT LOADED & TRIAGE WORKSPACE (With LineSidebar) */
-        <div className="pt-20 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-6">
+        <div className="pt-24 sm:pt-28 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-6">
           {/* Top Document Card */}
           {metadata && (
             <AnimatedContent distance={30} direction="vertical" duration={0.6} ease="power3.out" trigger="mount">
