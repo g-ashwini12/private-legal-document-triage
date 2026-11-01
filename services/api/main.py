@@ -11,6 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 import httpx
+import logging
+
+logger = logging.getLogger("legal_triage.api")
 
 from config import settings
 from database import (
@@ -96,7 +99,7 @@ def get_documents_list():
 class TTSRequest(BaseModel):
     text: str
     language: str = "en"
-    speaker: Optional[str] = "meera"
+    speaker: Optional[str] = "kavya"
 
 @app.post("/api/tts")
 async def text_to_speech(req: TTSRequest, request: Request):
@@ -104,7 +107,7 @@ async def text_to_speech(req: TTSRequest, request: Request):
     Generate expressive, natural Indian Text-to-Speech using Sarvam.ai Bulbul API.
     Falls back gracefully to browser synthesis if key is not configured.
     """
-    sarvam_key = request.headers.get("x-sarvam-key") or os.environ.get("SARVAM_API_KEY", "")
+    sarvam_key = request.headers.get("x-sarvam-key") or os.environ.get("SARVAM_API_KEY", "") or "sk_7fq0vypn_uXNV4ip88rArzxSTmw8LoMMH"
     if not sarvam_key:
         return {"status": "fallback", "message": "No Sarvam API key provided; falling back to browser synthesis."}
 
@@ -117,6 +120,7 @@ async def text_to_speech(req: TTSRequest, request: Request):
         "ml": "ml-IN"
     }
     target_lang = lang_code_map.get(req.language, "en-IN")
+    speaker = req.speaker if req.speaker and req.speaker != "meera" else "kavya"
 
     try:
         async with httpx.AsyncClient(timeout=25.0) as client:
@@ -129,13 +133,8 @@ async def text_to_speech(req: TTSRequest, request: Request):
                 json={
                     "inputs": [req.text[:500]],
                     "target_language_code": target_lang,
-                    "speaker": req.speaker or "meera",
-                    "pitch": 0,
-                    "pace": 1.0,
-                    "loudness": 1.5,
-                    "speech_sample_rate": 22050,
-                    "enable_preprocessing": True,
-                    "model": "bulbul:v1"
+                    "speaker": speaker,
+                    "model": "bulbul:v3"
                 }
             )
             if resp.status_code == 200:
@@ -143,8 +142,10 @@ async def text_to_speech(req: TTSRequest, request: Request):
                 audios = data.get("audios", [])
                 if audios:
                     return {"status": "ok", "audio_base64": audios[0], "format": "audio/wav"}
+            else:
+                logger.error(f"Sarvam API returned error {resp.status_code}: {resp.text}")
     except Exception as e:
-        pass
+        logger.error(f"Sarvam API exception: {e}")
 
     return {"status": "fallback", "message": "Sarvam API request failed; falling back to browser synthesis."}
 

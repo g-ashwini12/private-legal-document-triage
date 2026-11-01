@@ -132,7 +132,7 @@ export async function speakLocalText(
       body: JSON.stringify({
         text: cleanText.substring(0, 500),
         language: lang,
-        speaker: 'meera',
+        speaker: 'kavya',
       }),
     });
 
