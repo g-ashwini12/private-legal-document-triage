@@ -30,7 +30,7 @@ class OllamaUnavailableError(Exception):
 
 def check_ollama_status() -> bool:
     try:
-        r = httpx.get(f"{settings.OLLAMA_BASE_URL}/api/tags", timeout=1.5)
+        r = httpx.get(f"{settings.OLLAMA_BASE_URL}/api/tags", timeout=5.0)
         return r.status_code == 200
     except Exception:
         return False
