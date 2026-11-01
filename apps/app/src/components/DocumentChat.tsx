@@ -138,7 +138,11 @@ export default function DocumentChat({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col h-[650px] no-print">
+    <div
+      id="section-chat"
+      tabIndex={-1}
+      className="scroll-mt-24 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col h-[650px] no-print focus:outline-none transition-shadow"
+    >
       {/* Header */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -317,6 +321,7 @@ export default function DocumentChat({
       >
         <div className="flex items-center space-x-2">
           <input
+            id="document-chat-input"
             type="text"
             value={inputQuestion}
             onChange={(e) => setInputQuestion(e.target.value)}

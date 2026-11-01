@@ -52,13 +52,15 @@ export default function Navbar({ currentLanguage = 'en', onLanguageChange }: Nav
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand / Title only */}
         <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white shadow-sm shadow-emerald-600/20 group-hover:scale-105 transition-transform">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+          <img
+            src="/logo-icon.png"
+            alt="Logo"
+            className="w-8 h-8 rounded-lg shadow-xs group-hover:scale-105 transition-transform object-contain"
+          />
           <span className="font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
             {t('appName', selectedLang)}
           </span>

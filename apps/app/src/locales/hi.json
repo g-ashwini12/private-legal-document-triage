@@ -65,5 +65,15 @@
   "pdfMode": "पीडीएफ",
   "searchPlaceholder": "खोजें...",
   "noDocumentSelected": "कोई दस्तावेज़ चयनित नहीं",
-  "noClausesMatch": "इस पृष्ठ पर आपकी खोज से कोई धारा मेल नहीं खाती।"
+  "noClausesMatch": "इस पृष्ठ पर आपकी खोज से कोई धारा मेल नहीं खाती।",
+  "overview": "अवलोकन",
+  "talkToLawyer": "वकील से बात करें",
+  "askQuestion": "सवाल पूछें",
+  "originalDocument": "मूल दस्तावेज़",
+  "scrollToBegin": "शुरू करने के लिए स्क्रॉल करें",
+  "start": "शुरू करें",
+  "logoLine": "अपने दस्तावेज़ समझें। पूरी तरह निजी तौर पर।",
+  "purpose": "उद्देश्य",
+  "period": "अवधि",
+  "mainAmounts": "मुख्य राशियाँ"
 }

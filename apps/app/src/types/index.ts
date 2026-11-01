@@ -91,9 +91,26 @@ export interface LawyerAdvice {
   recommended_specialist_en?: string;
 }
 
+export interface MainAmountItem {
+  label: string;
+  value: string;
+  clause_ref?: string;
+  page?: number;
+}
+
+export interface DocumentOverview {
+  document_type: string;
+  purpose: string;
+  parties: string[];
+  period?: string | null;
+  main_amounts: MainAmountItem[];
+  citations: string[];
+}
+
 export interface DocumentAnalysisCards {
   document_id: string;
   language: string;
+  overview?: DocumentOverview | null;
   summary: string;
   summary_en?: string;
   key_details: KeyDetailItem[];

@@ -63,9 +63,24 @@ class LawyerAdvice(BaseModel):
     by_when_en: Optional[str] = None
     recommended_specialist_en: Optional[str] = None
 
+class MainAmountItem(BaseModel):
+    label: str
+    value: str
+    clause_ref: Optional[str] = None
+    page: Optional[int] = None
+
+class DocumentOverview(BaseModel):
+    document_type: str
+    purpose: str
+    parties: List[str] = Field(default_factory=list)
+    period: Optional[str] = None
+    main_amounts: List[MainAmountItem] = Field(default_factory=list)
+    citations: List[str] = Field(default_factory=list)
+
 class DocumentAnalysisCards(BaseModel):
     document_id: str
     language: str = "en"
+    overview: Optional[DocumentOverview] = None
     summary: str
     summary_en: Optional[str] = None
     key_details: List[KeyDetailItem] = Field(default_factory=list)

@@ -6,7 +6,8 @@ from typing import Dict, Any, List, Optional
 from config import settings
 from models import (
     DocumentAnalysisCards, KeyDetailItem, WatchOutItem, ObligationItem,
-    SimpleDeadlineItem, LawyerAdvice, AnswerResponse, EvidenceItem, ChunkModel
+    SimpleDeadlineItem, LawyerAdvice, AnswerResponse, EvidenceItem, ChunkModel,
+    DocumentOverview, MainAmountItem
 )
 from tools import compute_late_fee, penalty, add_days, subtract_days, add_months
 from translation_layer import (
@@ -327,6 +328,33 @@ def analyze_document_content(chunks: List[ChunkModel], doc_type: str, document_i
         "How much is the late fine if I pay late?"
     ]
 
+    # 0. Overview Card
+    overview_data = None
+    if doc_type == "rental" or "rental" in doc_type.lower():
+        overview_data = DocumentOverview(
+            document_type="Residential Rental Agreement",
+            purpose="Lease of Flat 4B, Lakeview Residency, Dharwad for residential tenancy.",
+            parties=["Ravi Menon (Landlord)", "Ananya Rao (Tenant)"],
+            period="11 months (1 November 2026 to 30 September 2027)",
+            main_amounts=[
+                MainAmountItem(label="Monthly Rent", value="₹18,000", clause_ref="Clause 3", page=1),
+                MainAmountItem(label="Security Deposit", value="₹54,000", clause_ref="Clause 4", page=1),
+                MainAmountItem(label="Daily Late Fee", value="₹200", clause_ref="Clause 3", page=1)
+            ],
+            citations=["Clause 1 (p.1)", "Clause 2 (p.1)", "Clause 3 (p.1)", "Clause 4 (p.1)"]
+        )
+    elif doc_type == "employment" or "employment" in doc_type.lower():
+        overview_data = DocumentOverview(
+            document_type="Employment Agreement",
+            purpose="Employment contract for Software Engineer role.",
+            parties=["Acme Technologies Ltd. (Employer)", "Vikram Sharma (Employee)"],
+            period="Full-time employment starting 1 December 2026",
+            main_amounts=[
+                MainAmountItem(label="Annual CTC", value="₹12,00,000", clause_ref="Clause 2", page=1)
+            ],
+            citations=["Clause 1 (p.1)", "Clause 2 (p.1)"]
+        )
+
     summary_text = (
         "This is a residential rental agreement between Ravi Menon (landlord) and Ananya Rao (tenant) "
         "for Flat 4B, Lakeview Residency, Dharwad, for 11 months from 1 November 2026 to 30 September 2027. "
@@ -351,6 +379,7 @@ def analyze_document_content(chunks: List[ChunkModel], doc_type: str, document_i
     cards = DocumentAnalysisCards(
         document_id=document_id,
         language="en",
+        overview=overview_data,
         summary=summary_text,
         summary_en=summary_text,
         key_details=key_details,
@@ -386,6 +415,20 @@ def translate_analysis_cards(cards: DocumentAnalysisCards, target_lang: str) -> 
 
     cards.language = target_lang
     cards.translation_notice = TRANSLATION_NOTICES.get(target_lang)
+
+    # 0. Overview
+    if cards.overview:
+        ov = cards.overview
+        ov.document_type = translate_text(ov.document_type, target_lang)
+        ov.purpose = translate_text(ov.purpose, target_lang)
+        ov.parties = [translate_text(p, target_lang) for p in ov.parties]
+        if ov.period:
+            ov.period = translate_text(ov.period, target_lang)
+        for ma in ov.main_amounts:
+            ma.label = translate_text(ma.label, target_lang)
+            if ma.clause_ref:
+                ma.clause_ref = localize_citation(ma.clause_ref, ma.page, target_lang)
+        ov.citations = [localize_citation(c, None, target_lang) for c in ov.citations]
 
     # 1. Summary
     cards.summary = translate_text(cards.summary_en or cards.summary, target_lang)

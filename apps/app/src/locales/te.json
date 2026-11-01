@@ -65,5 +65,15 @@
   "pdfMode": "పిడిఎఫ్",
   "searchPlaceholder": "వెతకండి...",
   "noDocumentSelected": "పత్రం ఏదీ ఎంపిక చేయబడలేదు",
-  "noClausesMatch": "ఈ పేజీలో మీ శోధనకు సరిపోలే నిబంధనలు లేవు."
+  "noClausesMatch": "ఈ పేజీలో మీ శోధనకు సరిపోలే నిబంధనలు లేవు.",
+  "overview": "అవలోకనం",
+  "talkToLawyer": "న్యాయవాదితో మాట్లాడండి",
+  "askQuestion": "ప్రశ్న అడగండి",
+  "originalDocument": "అసలు పత్రం",
+  "scrollToBegin": "ప్రారంభించడానికి స్క్రోల్ చేయండి",
+  "start": "ప్రారంభించండి",
+  "logoLine": "మీ పత్రాలను అర్థం చేసుకోండి. గోప్యంగా.",
+  "purpose": "ఉద్దేశం",
+  "period": "కాల వ్యవధి",
+  "mainAmounts": "ప్రధాన మొత్తాలు"
 }

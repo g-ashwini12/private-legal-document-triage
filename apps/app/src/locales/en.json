@@ -65,5 +65,15 @@
   "pdfMode": "PDF",
   "searchPlaceholder": "Search...",
   "noDocumentSelected": "No Document Selected",
-  "noClausesMatch": "No clauses match your search on this page."
+  "noClausesMatch": "No clauses match your search on this page.",
+  "overview": "Overview",
+  "talkToLawyer": "Talk to a lawyer",
+  "askQuestion": "Ask a question",
+  "originalDocument": "Original document",
+  "scrollToBegin": "Scroll to begin",
+  "start": "Start",
+  "logoLine": "Understand your documents. Privately.",
+  "purpose": "Purpose",
+  "period": "Period",
+  "mainAmounts": "Main Amounts"
 }
