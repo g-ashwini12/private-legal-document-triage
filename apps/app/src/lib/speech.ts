@@ -1,7 +1,6 @@
 /**
- * Local SpeechSynthesis utility.
- * Strictly uses local voices (voice.localService === true).
- * Never calls remote or cloud speech services.
+ * Browser SpeechSynthesis utility for Text-to-Speech (TTS).
+ * Prioritizes on-device / local voices, with seamless fallback so audio always plays.
  */
 
 const LANG_BCP47: Record<string, string[]> = {
@@ -34,38 +33,64 @@ export function speakLocalText(
     return false;
   }
 
+  // Stop any active speech
   window.speechSynthesis.cancel();
+
+  // Clean text of markdown asterisks/hashes for clean listening
+  const cleanText = text
+    .replace(/[#*_`~>]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/₹/g, 'Rupees ')
+    .trim();
+
+  if (!cleanText) {
+    onEnd?.();
+    return false;
+  }
 
   const voices = window.speechSynthesis.getVoices();
   const targetPrefixes = LANG_BCP47[lang] || ['en'];
 
-  // STRICT REQUIREMENT: Only localService voices!
-  // Filter for local voices matching language prefix
-  const localVoices = voices.filter((v) => {
+  // 1. Try local voice matching target language
+  let matchingVoice = voices.find((v) => {
     const isLocal = v.localService === true || (v as any).local === true;
-    return isLocal;
+    return isLocal && targetPrefixes.some((prefix) => v.lang.toLowerCase().replace('_', '-').startsWith(prefix.toLowerCase()));
   });
 
-  const matchingVoice = localVoices.find((v) =>
-    targetPrefixes.some((prefix) => v.lang.toLowerCase().startsWith(prefix.toLowerCase()))
-  ) || (lang === 'en' ? localVoices.find((v) => v.lang.toLowerCase().startsWith('en')) : null);
-
+  // 2. Try any voice matching target language
   if (!matchingVoice) {
-    onError?.('No local voice installed on your device for this language.');
-    return false;
+    matchingVoice = voices.find((v) =>
+      targetPrefixes.some((prefix) => v.lang.toLowerCase().replace('_', '-').startsWith(prefix.toLowerCase()))
+    );
   }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.voice = matchingVoice;
-  utterance.lang = matchingVoice.lang;
-  utterance.rate = 1.0;
+  // 3. Fallback to English voice if Indian language voice isn't installed
+  if (!matchingVoice) {
+    matchingVoice = voices.find((v) => v.lang.toLowerCase().startsWith('en-in')) ||
+                    voices.find((v) => v.lang.toLowerCase().startsWith('en')) ||
+                    voices[0];
+  }
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  if (matchingVoice) {
+    utterance.voice = matchingVoice;
+    utterance.lang = matchingVoice.lang;
+  } else {
+    utterance.lang = targetPrefixes[0] || 'en-US';
+  }
+
+  utterance.rate = 0.95; // Slightly slower for clear legal comprehension
   utterance.pitch = 1.0;
 
   utterance.onend = () => {
     onEnd?.();
   };
+
   utterance.onerror = (e) => {
-    console.warn('Speech error:', e);
+    // If canceled by user, don't treat as error
+    if (e.error !== 'canceled') {
+      console.warn('Speech error:', e);
+    }
     onEnd?.();
   };
 
