@@ -126,7 +126,7 @@ export async function speakLocalText(
       headers['x-sarvam-key'] = userSarvamKey;
     }
 
-    const ttsRes = await fetch('/api/tts', {
+    let ttsRes = await fetch('/api/tts', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -134,12 +134,55 @@ export async function speakLocalText(
         language: lang,
         speaker: 'kavya',
       }),
-    });
+    }).catch(() => null);
 
-    if (ttsRes.ok) {
+    if (ttsRes && ttsRes.ok) {
       const data = await ttsRes.json();
       if (data.status === 'ok' && data.audio_base64) {
         const audioSrc = `data:${data.format || 'audio/wav'};base64,${data.audio_base64}`;
+        const audio = new Audio(audioSrc);
+        activeAudio = audio;
+        audio.onended = () => {
+          activeAudio = null;
+          onEnd?.();
+        };
+        audio.onerror = () => {
+          activeAudio = null;
+          fallbackBrowserSpeech(cleanText, lang, onEnd, onError);
+        };
+        await audio.play();
+        return true;
+      }
+    }
+
+    // Direct client fallback to Sarvam.ai if backend proxy is offline
+    const directKey = userSarvamKey || 'sk_7fq0vypn_uXNV4ip88rArzxSTmw8LoMMH';
+    const langMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      ta: 'ta-IN',
+      te: 'te-IN',
+      kn: 'kn-IN',
+      ml: 'ml-IN',
+    };
+    const directRes = await fetch('https://api.sarvam.ai/text-to-speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-subscription-key': directKey,
+      },
+      body: JSON.stringify({
+        inputs: [cleanText.substring(0, 500)],
+        target_language_code: langMap[lang] || 'en-IN',
+        speaker: 'kavya',
+        model: 'bulbul:v3',
+      }),
+    }).catch(() => null);
+
+    if (directRes && directRes.ok) {
+      const data = await directRes.json();
+      if (data.audios && data.audios.length > 0) {
+        const audioSrc = `data:audio/wav;base64,${data.audios[0]}`;
         const audio = new Audio(audioSrc);
         activeAudio = audio;
         audio.onended = () => {

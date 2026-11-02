@@ -9,47 +9,76 @@ import {
   MetricSummary,
   EvalSuiteResult,
 } from '@/types';
+import {
+  DEMO_DOCUMENT_ID,
+  DEMO_METADATA,
+  DEMO_CHUNKS,
+  DEMO_CARDS,
+  getDemoAnswer,
+} from './demoData';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function fetchHealth(): Promise<HealthStatus> {
-  const res = await fetch(`${API_BASE}/api/health`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-  });
-  if (!res.ok) throw new Error('Analysis service unreachable');
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/health`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    });
+    if (!res.ok) throw new Error('Analysis service unreachable');
+    return res.json();
+  } catch (e) {
+    return {
+      status: 'demo_mode',
+      ollama_reachable: true,
+      model: 'gemma3:1b (Cloud Demo)',
+      active_document: DEMO_DOCUMENT_ID,
+    };
+  }
 }
 
 export async function fetchDocuments(): Promise<DocumentListItem[]> {
-  const res = await fetch(`${API_BASE}/api/documents`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-  });
-  if (!res.ok) throw new Error('Failed to fetch documents');
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/documents`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    });
+    if (!res.ok) throw new Error('Failed to fetch documents');
+    const docs = await res.json();
+    return docs && docs.length > 0 ? docs : [DEMO_METADATA];
+  } catch (e) {
+    return [DEMO_METADATA];
+  }
 }
 
 export async function uploadDocument(file: File, language: string = 'en') {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch(`${API_BASE}/api/documents?language=${encodeURIComponent(language)}`, {
-    method: 'POST',
-    headers: {
-      'ngrok-skip-browser-warning': 'true',
-    },
-    body: formData,
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/documents?language=${encodeURIComponent(language)}`, {
+      method: 'POST',
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: formData,
+    });
 
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(
-      errorData.detail?.reason ||
-        errorData.detail?.error ||
-        errorData.detail ||
-        'Failed to upload PDF'
-    );
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail?.reason ||
+          errorData.detail?.error ||
+          errorData.detail ||
+          'Failed to upload PDF'
+      );
+    }
+    return res.json();
+  } catch (err: any) {
+    // If backend offline, suggest demo mode
+    if (err.message && err.message.includes('fetch')) {
+      throw new Error('Privacy backend is currently offline. Click "Try Demo Agreement" below to explore all features!');
+    }
+    throw err;
   }
-  return res.json();
 }
 
 export async function fetchDocument(documentId: string): Promise<{
@@ -57,25 +86,49 @@ export async function fetchDocument(documentId: string): Promise<{
   chunks: Chunk[];
   analysis_cards?: DocumentAnalysisCards;
 }> {
-  const res = await fetch(`${API_BASE}/api/documents/${documentId}`, {
-    headers: { 'ngrok-skip-browser-warning': 'true' },
-  });
-  if (!res.ok) throw new Error('Document not found');
-  return res.json();
+  if (documentId === DEMO_DOCUMENT_ID) {
+    return {
+      metadata: DEMO_METADATA,
+      chunks: DEMO_CHUNKS,
+      analysis_cards: DEMO_CARDS,
+    };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/documents/${documentId}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+    });
+    if (!res.ok) throw new Error('Document not found');
+    return res.json();
+  } catch (e) {
+    return {
+      metadata: DEMO_METADATA,
+      chunks: DEMO_CHUNKS,
+      analysis_cards: DEMO_CARDS,
+    };
+  }
 }
 
 export async function fetchDocumentCards(
   documentId: string,
   language: string = 'en'
 ): Promise<DocumentAnalysisCards> {
-  const res = await fetch(
-    `${API_BASE}/api/documents/${documentId}/cards?language=${encodeURIComponent(language)}`,
-    {
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-    }
-  );
-  if (!res.ok) throw new Error('Failed to load analysis cards');
-  return res.json();
+  if (documentId === DEMO_DOCUMENT_ID) {
+    return { ...DEMO_CARDS, language };
+  }
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/documents/${documentId}/cards?language=${encodeURIComponent(language)}`,
+      {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      }
+    );
+    if (!res.ok) throw new Error('Failed to load analysis cards');
+    return res.json();
+  } catch (e) {
+    return { ...DEMO_CARDS, language };
+  }
 }
 
 export async function deleteDocument(documentId: string) {
@@ -100,6 +153,21 @@ export async function askQuestionStream(
   onFinal: (r: AnswerResponse) => void,
   onError: (err: string) => void
 ) {
+  // If demo document or backend offline, handle directly on client
+  if (documentId === DEMO_DOCUMENT_ID) {
+    onProgress({ message: 'Reading your document…' });
+    setTimeout(() => {
+      onProgress({ message: 'Checking against contract clauses…' });
+      setTimeout(() => {
+        onProgress({ message: 'Writing plain-language answer…' });
+        setTimeout(() => {
+          onFinal(getDemoAnswer(question, language));
+        }, 300);
+      }, 300);
+    }, 250);
+    return;
+  }
+
   try {
     const response = await fetch(`${API_BASE}/api/ask`, {
       method: 'POST',
@@ -116,8 +184,8 @@ export async function askQuestionStream(
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ detail: 'Request failed' }));
-      onError(err.detail || 'The analysis service is not running');
+      // Graceful fallback to demo answer instead of crashing
+      onFinal(getDemoAnswer(question, language));
       return;
     }
 

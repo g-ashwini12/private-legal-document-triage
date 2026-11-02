@@ -13,7 +13,9 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  Sparkles,
 } from 'lucide-react';
+import { DEMO_DOCUMENT_ID } from '@/lib/demoData';
 import {
   fetchDocuments,
   fetchDocument,
@@ -442,11 +444,23 @@ export default function WorkspacePage() {
                   {t('uploadPrompt', currentLang)}
                 </p>
 
-                <div className="mt-6">
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                   <span className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg transition-all hover:shadow-emerald-500/30">
                     <FileText className="w-4 h-4" />
                     <span>{t('uploadButton', currentLang)}</span>
                   </span>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      loadDocument(DEMO_DOCUMENT_ID, currentLang);
+                    }}
+                    className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-emerald-400 font-bold text-xs sm:text-sm border border-emerald-500/40 shadow-lg transition-all hover:border-emerald-400 hover:scale-[1.02] cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span>⚡ Try Demo Agreement</span>
+                  </button>
                 </div>
               </div>
 
@@ -455,19 +469,29 @@ export default function WorkspacePage() {
                 {t('privacyNote', currentLang)}
               </p>
 
-              {/* Error if any */}
+              {/* Error if any with 1-click fallback */}
               {errorMessage && (
-                <div className="mt-4 p-3 rounded-xl bg-rose-950/80 backdrop-blur-md border border-rose-500/40 text-xs text-rose-200 flex items-center justify-between">
+                <div className="mt-4 p-3.5 rounded-xl bg-rose-950/80 backdrop-blur-md border border-rose-500/40 text-xs text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                     <span>{errorMessage}</span>
                   </div>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs transition-colors"
-                  >
-                    {t('retry', currentLang)}
-                  </button>
+                  <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => loadDocument(DEMO_DOCUMENT_ID, currentLang)}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      ⚡ View Demo Agreement
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition-colors whitespace-nowrap"
+                    >
+                      {t('retry', currentLang)}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
